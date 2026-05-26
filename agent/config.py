@@ -29,10 +29,17 @@ MODEL: str = os.getenv("MODEL", "gpt-4o-mini")
 TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0"))
 MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "2048"))
 
+# ── Embeddings ────────────────────────────────────────────────────────────────
+EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+
+# ── RAG — documents ISTQB ────────────────────────────────────────────────────
+ISTQB_DOCS_DIR: str = os.getenv("ISTQB_DOCS_DIR", "../pdf")
+CHROMA_COLLECTION: str = os.getenv("CHROMA_COLLECTION", "istqb_best_practices")
+
 # ── User Stories API ──────────────────────────────────────────────────────────
 US_API_ENDPOINT: str = os.getenv("US_API_ENDPOINT", "http://localhost:3000/api/user-stories")
 
 # ── RAG / ChromaDB ────────────────────────────────────────────────────────────
 CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
-RAG_SCORE_THRESHOLD: float = float(os.getenv("RAG_SCORE_THRESHOLD", "0.70"))
+RAG_SCORE_THRESHOLD: float = float(os.getenv("RAG_SCORE_THRESHOLD", "0.10"))
 RAG_TOP_K: int = int(os.getenv("RAG_TOP_K", "5"))

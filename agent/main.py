@@ -24,6 +24,7 @@ from tools.user_stories import fetch_all, fetch_by_index, parse_us_list
 from tools.validator import validate_output
 from security.input_guard import validate_input
 from security.output_filter import filter_response
+from rag.retrieve import retrieve, build_rag_context
 
 logger = logging.getLogger(__name__)
 
@@ -71,15 +72,17 @@ def _build_messages(
     context: list[dict],
     us_list: list[dict],
     intent: str,
+    rag_context: str = "",
 ) -> list[dict]:
     """
     Construit la liste de messages à envoyer au LLM.
 
     Args:
-        query:   requête utilisateur
-        context: historique de conversation (depuis la mémoire courte)
-        us_list: liste de user stories récupérées depuis l'endpoint
-        intent:  intention classifiée
+        query:       requête utilisateur
+        context:     historique de conversation (depuis la mémoire courte)
+        us_list:     liste de user stories récupérées depuis l'endpoint
+        intent:      intention classifiée
+        rag_context: bonnes pratiques ISTQB récupérées via ChromaDB (optionnel)
 
     Returns:
         Liste de dicts {role, content} prête pour call_llm_json.
@@ -99,12 +102,23 @@ def _build_messages(
             "content": f"Historique de la conversation :\n{ctx_text}",
         })
 
-    # 3. Données User Stories
+    # 3. Bonnes pratiques ISTQB (RAG)
+    if rag_context:
+        messages.append({
+            "role": "system",
+            "content": (
+                "Bonnes pratiques ISTQB pertinentes pour cette user story "
+                "(issues de la base documentaire) :\n\n"
+                + rag_context
+            ),
+        })
+
+    # 4. Données User Stories
     if us_list:
         us_text = parse_us_list(us_list)
         messages.append({
             "role": "system",
-            "content": f"User stories disponibles :\n\n{us_text}",
+            "content": f"User stories à analyser :\n\n{us_text}",
         })
     else:
         messages.append({
@@ -112,11 +126,11 @@ def _build_messages(
             "content": "Aucune user story disponible depuis l'endpoint.",
         })
 
-    # 4. Prompt de génération si intent QA
+    # 5. Prompt de génération si intent QA
     if intent in ("generate_tests", "analyze_story", "detect_ambiguities"):
         messages.append({"role": "system", "content": _GENERATE_PROMPT})
 
-    # 5. Requête utilisateur
+    # 6. Requête utilisateur
     messages.append({"role": "user", "content": query})
 
     return messages
@@ -143,6 +157,28 @@ def _fetch_relevant_us(query: str, intent: str) -> list[dict]:
 
     # Sinon, récupérer toutes les US
     return fetch_all()
+
+
+def _build_rag_query(us_list: list[dict]) -> str:
+    """
+    Construit la query de recherche RAG à partir des user stories chargées.
+
+    On utilise le contenu sémantique des US (description + critères d'acceptation)
+    plutôt que la requête brute de l'utilisateur : cela donne des résultats
+    ISTQB beaucoup plus pertinents (ex : BVA pour un champ password, EP pour un email).
+
+    Args:
+        us_list: liste de dicts US récupérés depuis l'endpoint.
+
+    Returns:
+        Texte concaténé à envoyer à ChromaDB pour le retrieval.
+    """
+    parts = []
+    for us in us_list[:3]:  # limiter à 3 US pour ne pas surcharger la query
+        parts.append(us.get("description", ""))
+        parts.extend(us.get("acceptanceCriteria", []))
+        parts.extend(us.get("constraints", []))
+    return " ".join(p for p in parts if p).strip()
 
 
 # ── Fonction principale ───────────────────────────────────────────────────────
@@ -190,8 +226,17 @@ def agent(query: str) -> dict:
     us_list = _fetch_relevant_us(query, intent)
     logger.info("US chargées : %d", len(us_list))
 
-    # 7. Construire les messages et appeler le LLM
-    messages = _build_messages(query, context, us_list, intent)
+    # 7. RAG — récupérer les bonnes pratiques ISTQB pertinentes
+    # La query RAG est construite à partir du contenu des US (plus précis que la requête brute)
+    rag_context = ""
+    if us_list and intent in ("generate_tests", "analyze_story", "detect_ambiguities"):
+        rag_query = _build_rag_query(us_list)
+        chunks = retrieve(rag_query)
+        rag_context = build_rag_context(chunks)
+        logger.info("RAG — %d chunks ISTQB injectés", len(chunks))
+
+    # 8. Construire les messages et appeler le LLM
+    messages = _build_messages(query, context, us_list, intent, rag_context)
 
     schema = (
         '{"status":"success|error|clarification_needed|out_of_scope",'
