@@ -1,0 +1,23 @@
+# Environnement virtuel Python
+.venv/
+venv/
+
+# Variables d'environnement (contient la clé API)
+.env
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ChromaDB (base vectorielle locale)
+chroma_db/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
