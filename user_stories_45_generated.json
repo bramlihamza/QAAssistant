@@ -1,0 +1,992 @@
+[
+  {
+    "id": 6,
+    "index": "US-006",
+    "title": "Account creation",
+    "description": "As a visitor, I want to create an account so that I can start using the platform.",
+    "constraints": [
+      "The email address must be unique.",
+      "The password must contain at least 8 characters.",
+      "Required fields must be validated before submission.",
+      "A confirmation message must be shown after successful registration."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid registration form, when the user submits it, then the account is created.",
+      "Given an email already in use, when the user submits the form, then an error message is displayed.",
+      "Given an incomplete form, when the user submits it, then the submission is blocked."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-006-account-creation.png"
+    ]
+  },
+  {
+    "id": 7,
+    "index": "US-007",
+    "title": "Email verification",
+    "description": "As a new user, I want to verify my email so that I can activate my account.",
+    "constraints": [
+      "The verification link must be unique.",
+      "The link must expire after a limited duration.",
+      "The account must remain inactive until verification is completed.",
+      "A clear message must be displayed if the link is invalid."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid verification link, when the user opens it, then the account is activated.",
+      "Given an expired link, when the user opens it, then they are prompted to request a new one.",
+      "Given an already verified account, when the link is reused, then an informative message is displayed."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-007-email-verification.png"
+    ]
+  },
+  {
+    "id": 8,
+    "index": "US-008",
+    "title": "Resend verification email",
+    "description": "As a user, I want to resend the verification email so that I can activate my account if I did not receive the first message.",
+    "constraints": [
+      "The resend action must be available only to unverified users.",
+      "Multiple resend requests must be rate limited.",
+      "A generic success message must be displayed to avoid account enumeration.",
+      "The email must contain the latest valid verification link."
+    ],
+    "acceptanceCriteria": [
+      "Given an unverified account, when the user requests a resend, then a verification email is sent.",
+      "Given a verified account, when the user requests a resend, then the action is unavailable.",
+      "Given repeated requests, when the limit is reached, then the user is informed to try later."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-008-resend-verification-email.png"
+    ]
+  },
+  {
+    "id": 9,
+    "index": "US-009",
+    "title": "Change password",
+    "description": "As a logged-in user, I want to change my password so that I can keep my account secure.",
+    "constraints": [
+      "The current password must be required.",
+      "The new password must follow the security policy.",
+      "The new password must differ from the current one.",
+      "A success message must be displayed after the change."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid current password and compliant new password, when the form is submitted, then the password is updated.",
+      "Given an incorrect current password, when the form is submitted, then the update is rejected.",
+      "Given a weak new password, when the form is submitted, then validation errors are displayed."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-009-change-password.png"
+    ]
+  },
+  {
+    "id": 10,
+    "index": "US-010",
+    "title": "Remember me",
+    "description": "As a user, I want to stay signed in on my device so that I do not need to log in again every time.",
+    "constraints": [
+      "The session duration must increase only when the option is selected.",
+      "The feature must not be enabled on public devices by default.",
+      "The user must be able to revoke remembered devices from account settings.",
+      "Security controls must still apply to protected actions."
+    ],
+    "acceptanceCriteria": [
+      "Given the option is selected, when the user logs in, then a persistent session is created.",
+      "Given the option is not selected, when the user closes the browser, then the session expires normally.",
+      "Given a revoked device, when it tries to access the account, then it must be prompted to log in again."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-010-remember-me.png"
+    ]
+  },
+  {
+    "id": 11,
+    "index": "US-011",
+    "title": "Two-factor authentication activation",
+    "description": "As a user, I want to enable two-factor authentication so that my account is better protected.",
+    "constraints": [
+      "A valid mobile number or authenticator app must be configured.",
+      "The setup process must include a verification step.",
+      "Backup codes must be generated once activation is complete.",
+      "The user must be able to cancel the setup before confirmation."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid setup flow, when the user confirms the code, then two-factor authentication is enabled.",
+      "Given an invalid code, when the user submits it, then the setup is rejected.",
+      "Given the activation is cancelled, when the user exits the flow, then no changes are saved."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-011-two-factor-authentication-activation.png"
+    ]
+  },
+  {
+    "id": 12,
+    "index": "US-012",
+    "title": "Two-factor authentication login",
+    "description": "As a user with two-factor authentication enabled, I want to enter a second code during login so that I can securely access my account.",
+    "constraints": [
+      "The second factor must be requested after valid credentials are entered.",
+      "The code must expire after a limited duration.",
+      "Too many invalid attempts must temporarily block verification.",
+      "The user must be able to request a new code."
+    ],
+    "acceptanceCriteria": [
+      "Given valid credentials, when the second code is correct, then the user is logged in.",
+      "Given an invalid second code, when it is submitted, then access is denied.",
+      "Given an expired code, when it is submitted, then the user is asked to request a new one."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-012-two-factor-authentication-login.png"
+    ]
+  },
+  {
+    "id": 13,
+    "index": "US-013",
+    "title": "View dashboard",
+    "description": "As a logged-in user, I want to view my dashboard so that I can quickly see key information.",
+    "constraints": [
+      "The dashboard must be accessible only to authenticated users.",
+      "Loading placeholders must be shown while data is being fetched.",
+      "Displayed metrics must come from the official data source.",
+      "Sensitive details must not be shown on the dashboard."
+    ],
+    "acceptanceCriteria": [
+      "Given a logged-in user, when they open the dashboard, then the main summary is displayed.",
+      "Given a data loading failure, when the dashboard loads, then an error state is shown.",
+      "Given a logged-out user, when they access the page, then they are redirected to login."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-013-view-dashboard.png"
+    ]
+  },
+  {
+    "id": 14,
+    "index": "US-014",
+    "title": "Update avatar",
+    "description": "As a logged-in user, I want to update my profile picture so that my account looks personalized.",
+    "constraints": [
+      "The image file must have an allowed format.",
+      "The file size must not exceed the configured limit.",
+      "A preview must be displayed before saving.",
+      "The previous avatar must remain unchanged if the upload fails."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid image, when the user saves it, then the avatar is updated.",
+      "Given an unsupported file type, when the user uploads it, then validation errors are shown.",
+      "Given a failed upload, when the user retries, then the previous avatar stays visible."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-014-update-avatar.png"
+    ]
+  },
+  {
+    "id": 15,
+    "index": "US-015",
+    "title": "Delete account",
+    "description": "As a user, I want to delete my account so that I can remove my data from the platform.",
+    "constraints": [
+      "The user must confirm the action before deletion.",
+      "A re-authentication step must be required for safety.",
+      "Associated personal data must be handled according to retention rules.",
+      "The action must be irreversible once completed."
+    ],
+    "acceptanceCriteria": [
+      "Given a confirmed request, when the user validates deletion, then the account is removed.",
+      "Given an incorrect password during confirmation, when the user submits it, then deletion is blocked.",
+      "Given a cancelled confirmation, when the dialog is closed, then no account changes occur."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-015-delete-account.png"
+    ]
+  },
+  {
+    "id": 16,
+    "index": "US-016",
+    "title": "Export personal data",
+    "description": "As a user, I want to export my personal data so that I can keep a copy of the information stored about me.",
+    "constraints": [
+      "The export must include only the user's own data.",
+      "The file must be generated in a readable format.",
+      "A secure download link must be provided.",
+      "The link must expire after a limited duration."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid request, when the export is generated, then the user can download the file.",
+      "Given a failed generation, when the request is processed, then an error message is displayed.",
+      "Given an expired download link, when it is used, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-016-export-personal-data.png"
+    ]
+  },
+  {
+    "id": 17,
+    "index": "US-017",
+    "title": "Manage notification preferences",
+    "description": "As a user, I want to configure notification preferences so that I receive only relevant alerts.",
+    "constraints": [
+      "Preferences must be saved per user account.",
+      "Each notification channel must be independently configurable.",
+      "The default settings must be visible on first visit.",
+      "Changes must persist after the user logs out."
+    ],
+    "acceptanceCriteria": [
+      "Given updated preferences, when the user saves them, then the new settings are stored.",
+      "Given invalid changes, when the user submits the form, then validation messages are displayed.",
+      "Given a reopened settings page, when it loads, then the saved preferences are displayed."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-017-manage-notification-preferences.png"
+    ]
+  },
+  {
+    "id": 18,
+    "index": "US-018",
+    "title": "Enable email notifications",
+    "description": "As a user, I want to enable email notifications so that I am informed about important activity.",
+    "constraints": [
+      "The email address must be verified before activation.",
+      "The user must be able to unsubscribe at any time.",
+      "Notification frequency must respect user settings.",
+      "A confirmation message must be displayed after activation."
+    ],
+    "acceptanceCriteria": [
+      "Given a verified email address, when the user enables the option, then email notifications are activated.",
+      "Given an unverified address, when the user enables the option, then they are prompted to verify first.",
+      "Given a disabled option, when the user saves changes, then no email notifications are sent."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-018-enable-email-notifications.png"
+    ]
+  },
+  {
+    "id": 19,
+    "index": "US-019",
+    "title": "Disable email notifications",
+    "description": "As a user, I want to disable email notifications so that I stop receiving unwanted emails.",
+    "constraints": [
+      "The change must take effect immediately after saving.",
+      "Transactional security emails must remain enabled.",
+      "The user must receive a confirmation of the update.",
+      "The preference must be honored on future events."
+    ],
+    "acceptanceCriteria": [
+      "Given enabled email notifications, when the user disables them, then marketing emails stop.",
+      "Given the setting is already disabled, when the page loads, then the state is shown correctly.",
+      "Given a successful update, when the user refreshes the page, then the saved state persists."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-019-disable-email-notifications.png"
+    ]
+  },
+  {
+    "id": 20,
+    "index": "US-020",
+    "title": "Search user records",
+    "description": "As an admin user, I want to search user records so that I can find a specific account quickly.",
+    "constraints": [
+      "The search must support email and name fields.",
+      "Results must be limited to authorized records.",
+      "No result state must be displayed when nothing matches.",
+      "The search query must be sanitized before execution."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid query, when the admin searches, then matching records are listed.",
+      "Given no matches, when the admin searches, then an empty state is shown.",
+      "Given an unauthorized user, when they access search, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-020-search-user-requests.png"
+    ]
+  },
+  {
+    "id": 21,
+    "index": "US-021",
+    "title": "Filter activity log",
+    "description": "As an admin user, I want to filter the activity log so that I can review relevant events.",
+    "constraints": [
+      "Filters must support date range and event type.",
+      "Results must update without losing the current filters.",
+      "Only permitted users can access the log.",
+      "The loading state must be visible while results are fetched."
+    ],
+    "acceptanceCriteria": [
+      "Given selected filters, when the admin applies them, then the log is updated.",
+      "Given a cleared filter set, when the admin resets filters, then all visible events are restored.",
+      "Given an unauthorized access attempt, when the page is opened, then access is blocked."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-021-filter-activity-log.png"
+    ]
+  },
+  {
+    "id": 22,
+    "index": "US-022",
+    "title": "View audit trail",
+    "description": "As an admin user, I want to view the audit trail so that I can trace changes made in the system.",
+    "constraints": [
+      "Audit records must include the actor, action, and timestamp.",
+      "Records must be immutable.",
+      "Only authorized roles can access the trail.",
+      "Pagination must be available for large volumes."
+    ],
+    "acceptanceCriteria": [
+      "Given an authorized admin, when they open the audit trail, then recent records are displayed.",
+      "Given a large dataset, when the admin navigates pages, then records load correctly.",
+      "Given a modification attempt, when an audit record is edited, then the operation is rejected."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-022-view-audit-trail.png"
+    ]
+  },
+  {
+    "id": 23,
+    "index": "US-023",
+    "title": "Create address",
+    "description": "As a logged-in user, I want to add an address so that I can use it for delivery or billing.",
+    "constraints": [
+      "Required address fields must be validated.",
+      "The postal code must follow the local format.",
+      "One address can be marked as primary.",
+      "A success message must be displayed after saving."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid address form, when the user saves it, then the address is created.",
+      "Given missing required fields, when the form is submitted, then validation errors are shown.",
+      "Given a server error, when saving fails, then the entered data remains visible."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-023-create-address.png"
+    ]
+  },
+  {
+    "id": 24,
+    "index": "US-024",
+    "title": "Edit address",
+    "description": "As a logged-in user, I want to edit an address so that I can keep it accurate.",
+    "constraints": [
+      "The address must belong to the current user.",
+      "Validation rules must be applied before saving.",
+      "A failure must not erase the entered data.",
+      "The updated address must replace the previous one in the list."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid update, when the user saves it, then the address details are changed.",
+      "Given invalid data, when the form is submitted, then the user sees validation errors.",
+      "Given an unauthorized attempt, when the user edits another account's address, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-024-edit-address.png"
+    ]
+  },
+  {
+    "id": 25,
+    "index": "US-025",
+    "title": "Delete address",
+    "description": "As a logged-in user, I want to delete an address so that I can remove old delivery details.",
+    "constraints": [
+      "The user must confirm the deletion.",
+      "A primary address cannot be deleted without first selecting another primary address.",
+      "The deletion must be reflected immediately in the address list.",
+      "An error message must be shown if the operation fails."
+    ],
+    "acceptanceCriteria": [
+      "Given a confirmed deletion, when the user validates it, then the address is removed.",
+      "Given a primary address with no replacement, when the user tries to delete it, then the action is blocked.",
+      "Given a failed request, when the deletion cannot be completed, then the address remains visible."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-025-delete-address.png"
+    ]
+  },
+  {
+    "id": 26,
+    "index": "US-026",
+    "title": "Set primary address",
+    "description": "As a user, I want to set a primary address so that the system can use it by default.",
+    "constraints": [
+      "Only one address can be primary at a time.",
+      "The selected address must belong to the user.",
+      "The change must persist across sessions.",
+      "A confirmation should be displayed after saving."
+    ],
+    "acceptanceCriteria": [
+      "Given several saved addresses, when the user selects one as primary, then it becomes the default.",
+      "Given a different address already marked primary, when the change is saved, then the old one is unset.",
+      "Given an invalid address selection, when the user submits it, then the request is rejected."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-026-set-primary-address.png"
+    ]
+  },
+  {
+    "id": 27,
+    "index": "US-027",
+    "title": "View orders",
+    "description": "As a customer, I want to view my orders so that I can track my purchases.",
+    "constraints": [
+      "Orders must be sorted by most recent first.",
+      "Only the current user's orders may be displayed.",
+      "Each order must show its status and date.",
+      "A loading state must be visible before results appear."
+    ],
+    "acceptanceCriteria": [
+      "Given a logged-in customer, when they open orders, then their order list is displayed.",
+      "Given no orders, when the page loads, then an empty state is shown.",
+      "Given a logged-out user, when they access the page, then they are redirected to login."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-027-view-orders.png"
+    ]
+  },
+  {
+    "id": 28,
+    "index": "US-028",
+    "title": "View order details",
+    "description": "As a customer, I want to view order details so that I can check the contents and status of a specific order.",
+    "constraints": [
+      "Only the owner of the order can access it.",
+      "The detail page must show line items and totals.",
+      "Sensitive payment data must be masked.",
+      "An error state must be displayed if the order cannot be found."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid order ID, when the customer opens it, then the full order details are shown.",
+      "Given an unknown order ID, when the page is opened, then a not-found message is displayed.",
+      "Given an unauthorized request, when the user accesses another order, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-028-view-order-details.png"
+    ]
+  },
+  {
+    "id": 29,
+    "index": "US-029",
+    "title": "Download invoice",
+    "description": "As a customer, I want to download an invoice so that I can keep a proof of purchase.",
+    "constraints": [
+      "Only completed orders may generate an invoice.",
+      "The invoice must include the order number and billing details.",
+      "The document must be generated in a downloadable format.",
+      "The download link must be secure and time limited."
+    ],
+    "acceptanceCriteria": [
+      "Given a completed order, when the customer requests an invoice, then the file is generated.",
+      "Given an incomplete order, when the customer requests an invoice, then the action is unavailable.",
+      "Given an expired link, when it is opened, then access to the invoice is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-029-download-invoice.png"
+    ]
+  },
+  {
+    "id": 30,
+    "index": "US-030",
+    "title": "Cancel order",
+    "description": "As a customer, I want to cancel an order so that I can stop a purchase before it is processed.",
+    "constraints": [
+      "Only cancellable orders may be cancelled.",
+      "The user must confirm the cancellation.",
+      "The system must update the order status immediately.",
+      "A refund message must be shown when applicable."
+    ],
+    "acceptanceCriteria": [
+      "Given a cancellable order, when the customer confirms cancellation, then the status changes to cancelled.",
+      "Given an already shipped order, when the customer tries to cancel it, then the action is blocked.",
+      "Given a successful cancellation, when the page refreshes, then the new status is visible."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-030-cancel-order.png"
+    ]
+  },
+  {
+    "id": 31,
+    "index": "US-031",
+    "title": "Track shipment",
+    "description": "As a customer, I want to track my shipment so that I can see the delivery progress.",
+    "constraints": [
+      "The tracking number must be available before tracking begins.",
+      "The shipment status must be refreshed from the carrier system.",
+      "The page must handle missing or invalid tracking numbers.",
+      "A loading indicator must be shown while data is fetched."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid tracking number, when the customer opens the tracking page, then shipment progress is displayed.",
+      "Given an invalid tracking number, when it is submitted, then an error message is shown.",
+      "Given no tracking data, when the page loads, then the customer is informed that the shipment is pending."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-031-track-shipment.png"
+    ]
+  },
+  {
+    "id": 32,
+    "index": "US-032",
+    "title": "Add payment method",
+    "description": "As a customer, I want to add a payment method so that I can save it for future purchases.",
+    "constraints": [
+      "Card details must be validated before saving.",
+      "Sensitive payment data must be tokenized.",
+      "The payment method must be associated with the current user only.",
+      "A confirmation must be shown after successful addition."
+    ],
+    "acceptanceCriteria": [
+      "Given valid card details, when the customer saves them, then the payment method is added.",
+      "Given invalid card details, when the form is submitted, then validation errors are displayed.",
+      "Given a payment gateway error, when saving fails, then no card data is stored."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-032-add-payment-method.png"
+    ]
+  },
+  {
+    "id": 33,
+    "index": "US-033",
+    "title": "Edit payment method",
+    "description": "As a customer, I want to update a payment method so that my saved details remain current.",
+    "constraints": [
+      "Only editable fields may be changed.",
+      "The payment token must remain secure.",
+      "Expired cards must be flagged by validation rules.",
+      "The user must see a success message after saving."
+    ],
+    "acceptanceCriteria": [
+      "Given valid edits, when the customer saves them, then the payment method is updated.",
+      "Given expired card data, when the customer submits it, then validation fails.",
+      "Given a failed update, when the request cannot be completed, then the existing payment method remains unchanged."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-033-edit-payment-method.png"
+    ]
+  },
+  {
+    "id": 34,
+    "index": "US-034",
+    "title": "Delete payment method",
+    "description": "As a customer, I want to delete a payment method so that I can remove old card details.",
+    "constraints": [
+      "The primary payment method cannot be removed if it is the only one available.",
+      "The user must confirm deletion.",
+      "Card data must be removed from the customer profile.",
+      "A clear error message must be shown if deletion fails."
+    ],
+    "acceptanceCriteria": [
+      "Given a saved payment method, when the customer confirms deletion, then it is removed.",
+      "Given the only payment method, when the customer tries to delete it, then the action is blocked.",
+      "Given a failed request, when deletion cannot be completed, then the method remains listed."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-034-delete-payment-method.png"
+    ]
+  },
+  {
+    "id": 35,
+    "index": "US-035",
+    "title": "Subscribe to newsletter",
+    "description": "As a visitor, I want to subscribe to the newsletter so that I can receive product updates.",
+    "constraints": [
+      "A valid email address must be required.",
+      "The user must explicitly accept the subscription conditions.",
+      "A confirmation email must be sent after subscription.",
+      "The unsubscribe option must remain available in each email."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid email address, when the visitor subscribes, then the subscription is created.",
+      "Given an invalid email address, when the form is submitted, then validation errors are displayed.",
+      "Given a duplicate subscription, when the visitor submits again, then a friendly message is shown."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-035-subscribe-to-newsletter.png"
+    ]
+  },
+  {
+    "id": 36,
+    "index": "US-036",
+    "title": "Unsubscribe from newsletter",
+    "description": "As a subscriber, I want to unsubscribe from the newsletter so that I stop receiving marketing emails.",
+    "constraints": [
+      "The unsubscribe link must work without login.",
+      "The request must be processed quickly.",
+      "A confirmation page must be shown after completion.",
+      "Transactional emails must not be affected."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid unsubscribe link, when the user opens it, then the subscription is cancelled.",
+      "Given an expired link, when it is opened, then the user is asked to request a new one.",
+      "Given a successful unsubscribe, when future campaigns are sent, then the user does not receive them."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-036-unsubscribe-from-newsletter.png"
+    ]
+  },
+  {
+    "id": 37,
+    "index": "US-037",
+    "title": "View notifications",
+    "description": "As a user, I want to view my notifications so that I can stay informed about important events.",
+    "constraints": [
+      "Only the current user's notifications may be displayed.",
+      "Unread notifications must be visually distinguishable.",
+      "A loading state must appear while notifications are fetched.",
+      "The list must support pagination or infinite scroll."
+    ],
+    "acceptanceCriteria": [
+      "Given unread notifications, when the user opens the panel, then they are displayed first.",
+      "Given no notifications, when the panel opens, then an empty state is shown.",
+      "Given a logged-out user, when they try to access notifications, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-037-view-notifications.png"
+    ]
+  },
+  {
+    "id": 38,
+    "index": "US-038",
+    "title": "Mark notifications as read",
+    "description": "As a user, I want to mark notifications as read so that I can keep my inbox organized.",
+    "constraints": [
+      "The unread count must update immediately.",
+      "Only the selected user's notifications can be updated.",
+      "The action must work for single and bulk selection.",
+      "A failure message must be shown if the update fails."
+    ],
+    "acceptanceCriteria": [
+      "Given unread notifications, when the user marks one as read, then the unread count decreases.",
+      "Given multiple selected notifications, when the user marks them as read, then all are updated.",
+      "Given a failed update, when the request cannot be completed, then the notification state remains unchanged."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-038-mark-notifications-as-read.png"
+    ]
+  },
+  {
+    "id": 39,
+    "index": "US-039",
+    "title": "Clear notifications",
+    "description": "As a user, I want to clear notifications so that I can remove old alerts from my list.",
+    "constraints": [
+      "Only the current user's notifications may be cleared.",
+      "The user must confirm bulk deletion.",
+      "The notification count must update after clearing.",
+      "Important system alerts may be excluded according to policy."
+    ],
+    "acceptanceCriteria": [
+      "Given selected notifications, when the user confirms clearing, then the list is updated.",
+      "Given a cancellation, when the dialog is dismissed, then no notifications are deleted.",
+      "Given a server error, when clearing fails, then the notifications remain visible."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-039-clear-notifications.png"
+    ]
+  },
+  {
+    "id": 40,
+    "index": "US-040",
+    "title": "View favorites",
+    "description": "As a user, I want to view my favorites so that I can quickly access saved items.",
+    "constraints": [
+      "Only the user's own favorites must be shown.",
+      "Items must be ordered by the user's sorting preference or most recent addition.",
+      "A loading state must be visible during retrieval.",
+      "The page must handle empty results gracefully."
+    ],
+    "acceptanceCriteria": [
+      "Given saved favorites, when the user opens the page, then their favorite items are listed.",
+      "Given no favorites, when the page loads, then an empty state is shown.",
+      "Given a logged-out user, when they access the page, then they are redirected to login."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-040-view-favorites.png"
+    ]
+  },
+  {
+    "id": 41,
+    "index": "US-041",
+    "title": "Add favorite",
+    "description": "As a user, I want to add an item to favorites so that I can find it later.",
+    "constraints": [
+      "The item must not already be in favorites.",
+      "Only accessible items can be favorited.",
+      "The action must be available from the item detail page and list view.",
+      "A confirmation indicator must appear after saving."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid item, when the user adds it to favorites, then it appears in the favorites list.",
+      "Given an already favorited item, when the user clicks the action again, then no duplicate is created.",
+      "Given an unauthorized item, when the user attempts to favorite it, then the action is blocked."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-041-add-favorite.png"
+    ]
+  },
+  {
+    "id": 42,
+    "index": "US-042",
+    "title": "Remove favorite",
+    "description": "As a user, I want to remove an item from favorites so that I can keep the list relevant.",
+    "constraints": [
+      "The item must be removed from the user's list only.",
+      "The action must be reversible only by adding it again.",
+      "The UI must update immediately after removal.",
+      "An error message must be displayed if the request fails."
+    ],
+    "acceptanceCriteria": [
+      "Given a favorited item, when the user removes it, then it disappears from the list.",
+      "Given a non-favorited item, when the user clicks remove, then the action is ignored or hidden.",
+      "Given a failed request, when removal cannot be completed, then the item remains in favorites."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-042-remove-favorite.png"
+    ]
+  },
+  {
+    "id": 43,
+    "index": "US-043",
+    "title": "Language selection",
+    "description": "As a user, I want to choose my language so that the application is easier to use.",
+    "constraints": [
+      "Supported languages must be listed in the settings.",
+      "The choice must persist across sessions.",
+      "Fallback text must be shown for unsupported content.",
+      "The change must apply without breaking the current page."
+    ],
+    "acceptanceCriteria": [
+      "Given a supported language, when the user selects it, then the interface updates accordingly.",
+      "Given a saved preference, when the user returns later, then the same language is used.",
+      "Given an unsupported translation key, when the page loads, then the default language is displayed."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-043-language-selection.png"
+    ]
+  },
+  {
+    "id": 44,
+    "index": "US-044",
+    "title": "Theme selection",
+    "description": "As a user, I want to switch between light and dark themes so that I can use the application comfortably.",
+    "constraints": [
+      "The selected theme must be saved per user or device preference.",
+      "The switch must update the interface immediately.",
+      "The default theme must follow system settings when available.",
+      "The toggle must remain accessible on all main pages."
+    ],
+    "acceptanceCriteria": [
+      "Given a selected theme, when the user changes it, then the interface updates instantly.",
+      "Given a saved preference, when the user returns, then the same theme is applied.",
+      "Given a system preference, when no explicit choice exists, then the app follows the system theme."
+    ],
+    "priority": "low",
+    "status": "ready",
+    "images": [
+      "generated/us-044-theme-selection.png"
+    ]
+  },
+  {
+    "id": 45,
+    "index": "US-045",
+    "title": "Change username",
+    "description": "As a user, I want to change my username so that my account reflects my preferred display name.",
+    "constraints": [
+      "The username must be unique if the system requires uniqueness.",
+      "Special characters must be validated according to policy.",
+      "A success message must be shown after saving.",
+      "The old username must remain unchanged if the update fails."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid username, when the user submits the form, then the profile is updated.",
+      "Given a duplicate username, when the user submits it, then validation errors are displayed.",
+      "Given a server error, when the update fails, then the previous username remains in place."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-045-change-username.png"
+    ]
+  },
+  {
+    "id": 46,
+    "index": "US-046",
+    "title": "Change email address",
+    "description": "As a user, I want to change my email address so that my account uses an up-to-date contact address.",
+    "constraints": [
+      "The new email address must be valid and unique.",
+      "The change may require re-verification before activation.",
+      "A confirmation message must be sent to the new address.",
+      "The previous email must remain active until the change is confirmed."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid new email, when the user submits the change, then a confirmation process starts.",
+      "Given an invalid or already used email, when the form is submitted, then validation errors are shown.",
+      "Given an unconfirmed email change, when the user logs in later, then the account still uses the old address until verified."
+    ],
+    "priority": "high",
+    "status": "ready",
+    "images": [
+      "generated/us-046-change-email-address.png"
+    ]
+  },
+  {
+    "id": 47,
+    "index": "US-047",
+    "title": "Manage devices",
+    "description": "As a user, I want to manage my connected devices so that I can review and revoke active sessions.",
+    "constraints": [
+      "Each device entry must show the last active date and location if available.",
+      "The user must be able to revoke a single device session.",
+      "Revoking the current session must require special handling.",
+      "The list must be limited to the current user."
+    ],
+    "acceptanceCriteria": [
+      "Given several devices, when the user opens device management, then the active sessions are listed.",
+      "Given a device is revoked, when the user confirms the action, then that session is invalidated.",
+      "Given the current device is revoked, when the action is accepted, then the user is logged out."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-047-manage-devices.png"
+    ]
+  },
+  {
+    "id": 48,
+    "index": "US-048",
+    "title": "View billing summary",
+    "description": "As a customer, I want to view my billing summary so that I can understand my charges.",
+    "constraints": [
+      "The summary must show totals, taxes, and billing period.",
+      "Only the current customer's data may be displayed.",
+      "A loading state must appear while the summary is retrieved.",
+      "The page must handle missing billing data gracefully."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid account, when the user opens billing summary, then the totals are shown.",
+      "Given no billing records, when the page loads, then an empty or informational state is displayed.",
+      "Given an unauthorized user, when they access the page, then access is blocked."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-048-view-billing-summary.png"
+    ]
+  },
+  {
+    "id": 49,
+    "index": "US-049",
+    "title": "Download receipt",
+    "description": "As a customer, I want to download a receipt so that I can keep proof of payment.",
+    "constraints": [
+      "The receipt must be generated only for completed payments.",
+      "The file must contain the payment reference and amount.",
+      "The download link must expire after a limited duration.",
+      "The document must not expose sensitive card data."
+    ],
+    "acceptanceCriteria": [
+      "Given a completed payment, when the user requests a receipt, then the file is generated.",
+      "Given a pending payment, when the user requests a receipt, then the action is unavailable.",
+      "Given an expired link, when it is used, then access is denied."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-049-download-receipt.png"
+    ]
+  },
+  {
+    "id": 50,
+    "index": "US-050",
+    "title": "Request support",
+    "description": "As a user, I want to contact support so that I can report an issue or ask a question.",
+    "constraints": [
+      "A subject and message must be required.",
+      "The request must include the user's account context if they are logged in.",
+      "Spam protection must be applied.",
+      "A confirmation message must be displayed after submission."
+    ],
+    "acceptanceCriteria": [
+      "Given a valid support form, when the user submits it, then the request is created.",
+      "Given missing required fields, when the form is submitted, then validation errors are displayed.",
+      "Given a spam-like submission, when the request is sent, then it is rejected or flagged."
+    ],
+    "priority": "medium",
+    "status": "ready",
+    "images": [
+      "generated/us-050-request-support.png"
+    ]
+  }
+]
