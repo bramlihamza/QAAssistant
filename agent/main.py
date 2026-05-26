@@ -2,14 +2,16 @@
 main.py — Orchestration principale de l'agent QA (pattern ReAct).
 
 Cycle d'exécution :
-  1. Stocker la requête en mémoire courte.
-  2. Classifier l'intention.
-  3. Rappeler le contexte de conversation.
-  4. Si intent QA → récupérer les user stories depuis l'endpoint.
-  5. Construire les messages et appeler le LLM (JSON).
-  6. Valider la sortie JSON.
-  7. Stocker la réponse en mémoire.
-  8. Retourner la réponse.
+  1. Valider et assainir l'input (input_guard).
+  2. Stocker la requête en mémoire courte.
+  3. Classifier l'intention.
+  4. Rappeler le contexte de conversation.
+  5. Si intent QA → récupérer les user stories depuis l'endpoint.
+  6. Construire les messages et appeler le LLM (JSON).
+  7. Valider la sortie JSON.
+  8. Filtrer les données sensibles (output_filter).
+  9. Stocker la réponse en mémoire.
+  10. Retourner la réponse.
 """
 
 import logging
@@ -20,6 +22,8 @@ from llm import call_llm_json
 from memory.short_term import store, recall, clear  # noqa: F401 (clear ré-exporté)
 from tools.user_stories import fetch_all, fetch_by_index, parse_us_list
 from tools.validator import validate_output
+from security.input_guard import validate_input
+from security.output_filter import filter_response
 
 logger = logging.getLogger(__name__)
 
@@ -155,22 +159,38 @@ def agent(query: str) -> dict:
     """
     logger.info("Requête reçue : %s", query[:100])
 
-    # 1. Stocker la requête
+    # 1. Valider et assainir l'input
+    ok, result = validate_input(query)
+    if not ok:
+        logger.warning("Input rejeté par input_guard : %s", result)
+        return {
+            "status": "error",
+            "intent": "unknown",
+            "answer": result,
+            "test_cases": [],
+            "ambiguities": [],
+            "sources": [],
+            "warnings": ["Input invalide ou non autorisé."],
+            "requires_human_validation": False,
+        }
+    query = result  # version nettoyée (tronquée si besoin)
+
+    # 2. Stocker la requête
     store({"role": "user", "content": query})
 
-    # 2. Classifier l'intention
+    # 4. Classifier l'intention
     intent_result = _classify_intent(query)
     intent = intent_result.get("intent", "general")
     logger.info("Intent : %s (confiance : %s)", intent, intent_result.get("confidence"))
 
-    # 3. Rappeler le contexte (hors message courant)
+    # 5. Rappeler le contexte (hors message courant)
     context = recall(limit=5)[:-1]  # on exclut le message qu'on vient de stocker
 
-    # 4. Récupérer les user stories pertinentes
+    # 6. Récupérer les user stories pertinentes
     us_list = _fetch_relevant_us(query, intent)
     logger.info("US chargées : %d", len(us_list))
 
-    # 5. Construire les messages et appeler le LLM
+    # 7. Construire les messages et appeler le LLM
     messages = _build_messages(query, context, us_list, intent)
 
     schema = (
@@ -204,7 +224,10 @@ def agent(query: str) -> dict:
         logger.warning("Validation sortie échouée : %s", e)
         response["warnings"] = response.get("warnings", []) + [f"Validation: {e}"]
 
-    # 7. Stocker la réponse
+    # 7. Filtrer les données sensibles
+    response = filter_response(response)
+
+    # 8. Stocker la réponse
     store({"role": "assistant", "content": response.get("answer", "")})
 
     logger.info(
