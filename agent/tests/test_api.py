@@ -4,6 +4,7 @@ Tests de l'API FastAPI — sans appels réseau réels ni LLM.
 Utilise httpx.AsyncClient + mock de agent() et is_indexed().
 """
 
+import json
 import pytest
 from unittest.mock import patch, MagicMock
 from httpx import AsyncClient, ASGITransport
@@ -54,6 +55,18 @@ _AGENT_OUT_OF_SCOPE = {
     "sources": [],
     "warnings": [],
     "requires_human_validation": False,
+}
+
+_US_SAMPLE = {
+    "id": 6,
+    "index": "US-006",
+    "title": "Account creation",
+    "description": "As a visitor, I want to create an account.",
+    "constraints": ["Email unique"],
+    "acceptanceCriteria": ["Given ... When ... Then ..."],
+    "priority": "high",
+    "status": "ready",
+    "images": ["https://example.org/us-006.png"],
 }
 
 
@@ -107,6 +120,110 @@ async def test_metrics_initial(client):
     assert "requests_total" in data
     assert "avg_response_time_ms" in data
     assert "test_cases_generated" in data
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GET /user-stories
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def test_user_stories_list(client):
+    with patch("api.fetch_all", return_value=[_US_SAMPLE]):
+        r = await client.get("/user-stories")
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) == 1
+    assert data[0]["index"] == "US-006"
+
+
+async def test_user_story_by_index_found(client):
+    with patch("api.fetch_by_index", return_value=_US_SAMPLE):
+        r = await client.get("/user-stories/US-006")
+    assert r.status_code == 200
+    assert r.json()["title"] == "Account creation"
+
+
+async def test_user_story_by_index_not_found(client):
+    with patch("api.fetch_by_index", return_value=None):
+        r = await client.get("/user-stories/US-999")
+    assert r.status_code == 404
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GET /ragas
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def test_ragas_report_default(client, tmp_path):
+    report_file = tmp_path / "rapport_reranker.json"
+    report_file.write_text(
+        json.dumps({
+            "scores": {"context_precision": 0.58},
+            "global_score": 0.71,
+            "n_samples": 5,
+            "model": "gpt-4o-mini",
+        }),
+        encoding="utf-8",
+    )
+    with patch("api._available_ragas_reports", return_value={"reranker": report_file}):
+        r = await client.get("/ragas")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["selected_report"] == "reranker"
+    assert data["global_score"] == 0.71
+
+
+async def test_ragas_report_not_found(client):
+    with patch("api._available_ragas_reports", return_value={"reranker": MagicMock()}):
+        r = await client.get("/ragas?report=baseline")
+    assert r.status_code == 404
+
+
+async def test_ragas_run_live_success(client):
+    fake_run_payload = {
+        "scores": {"context_precision": 0.61, "faithfulness": 0.74},
+        "global_score": 0.68,
+        "n_samples": 5,
+        "model": "gpt-4o-mini",
+        "embedding_model": "text-embedding-3-small",
+    }
+
+    with patch("api._run_ragas_once", return_value=fake_run_payload):
+        r = await client.post(
+            "/ragas/run",
+            json={
+                "report": "reranker",
+                "persist_report": False,
+                "model": "gpt-4o-mini",
+                "max_samples": 5,
+            },
+        )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "success"
+    assert data["persisted"] is False
+    assert data["global_score"] == 0.68
+    assert data["n_samples"] == 5
+
+
+async def test_ragas_run_rejects_unknown_report_when_persisting(client):
+    fake_run_payload = {
+        "scores": {"context_precision": 0.5},
+        "global_score": 0.5,
+        "n_samples": 1,
+        "model": "gpt-4o-mini",
+        "embedding_model": "text-embedding-3-small",
+    }
+
+    with patch("api._run_ragas_once", return_value=fake_run_payload):
+        r = await client.post(
+            "/ragas/run",
+            json={
+                "report": "custom",
+                "persist_report": True,
+            },
+        )
+
+    assert r.status_code == 400
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -206,6 +323,9 @@ async def test_openapi_schema_accessible(client):
     assert "/ask" in schema["paths"]
     assert "/health" in schema["paths"]
     assert "/metrics" in schema["paths"]
+    assert "/user-stories" in schema["paths"]
+    assert "/ragas" in schema["paths"]
+    assert "/ragas/run" in schema["paths"]
 
 
 async def test_docs_accessible(client):

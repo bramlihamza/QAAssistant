@@ -3,7 +3,14 @@
 import pytest
 from unittest.mock import patch, Mock
 
-from tools.user_stories import fetch_all, fetch_by_index, parse_us, parse_us_list
+from tools.user_stories import (
+    _resolve_user_story_by_id_url,
+    _resolve_user_stories_url,
+    fetch_all,
+    fetch_by_index,
+    parse_us,
+    parse_us_list,
+)
 from tools.validator import validate_output
 
 
@@ -78,6 +85,26 @@ def test_fetch_all_success():
     assert result[0]["index"] == "US-006"
 
 
+def test_resolve_user_stories_url_accepts_base_data_url():
+    url = _resolve_user_stories_url("https://raw.githubusercontent.com/repo/main/data")
+    assert url.endswith("/data/user-stories.json")
+
+
+def test_resolve_user_stories_url_preserves_direct_json_url():
+    url = _resolve_user_stories_url("https://raw.githubusercontent.com/repo/main/data/user-stories.json")
+    assert url.endswith("/data/user-stories.json")
+
+
+def test_resolve_user_story_by_id_url_from_data_base():
+    url = _resolve_user_story_by_id_url("https://raw.githubusercontent.com/repo/main/data", 6)
+    assert url == "https://raw.githubusercontent.com/repo/main/data/user-stories/6.json"
+
+
+def test_resolve_user_story_by_id_url_from_list_url():
+    url = _resolve_user_story_by_id_url("https://raw.githubusercontent.com/repo/main/data/user-stories.json", 6)
+    assert url == "https://raw.githubusercontent.com/repo/main/data/user-stories/6.json"
+
+
 def test_fetch_all_timeout():
     import requests as req
     with patch("tools.user_stories.requests.get", side_effect=req.Timeout):
@@ -137,6 +164,29 @@ def test_fetch_by_index_not_found():
         result = fetch_by_index("US-999")
 
     assert result is None
+
+
+def test_fetch_by_index_fallback_to_per_id_endpoint():
+    list_resp = Mock()
+    list_resp.json.return_value = []
+    list_resp.raise_for_status = Mock()
+
+    per_id_resp = Mock()
+    per_id_resp.json.return_value = US_006
+    per_id_resp.raise_for_status = Mock()
+
+    def _fake_get(url, timeout):
+        if url.endswith("user-stories.json"):
+            return list_resp
+        if url.endswith("/user-stories/6.json"):
+            return per_id_resp
+        raise AssertionError(f"URL inattendue appelée: {url}")
+
+    with patch("tools.user_stories.requests.get", side_effect=_fake_get):
+        result = fetch_by_index("US-006")
+
+    assert result is not None
+    assert result["index"] == "US-006"
 
 
 # ── parse_us ──────────────────────────────────────────────────────────────────
