@@ -182,8 +182,9 @@ def run_evaluation(samples: list[dict]) -> dict:
         LLMContextRecall,
     )
     from ragas.llms import LangchainLLMWrapper
-    from langchain_openai import ChatOpenAI
-    from config import OPENAI_API_KEY, MODEL
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+    from config import OPENAI_API_KEY, MODEL, EMBEDDING_MODEL
 
     print("\n⚖️  Évaluation RAGAS en cours...")
 
@@ -192,6 +193,13 @@ def run_evaluation(samples: list[dict]) -> dict:
         api_key=OPENAI_API_KEY,
         model=MODEL,
         temperature=0,
+    ))
+
+    # Embeddings — forcer text-embedding-3-small (pas ada-002)
+    # RAGAS utilise ada-002 par défaut, mais notre projet n'y a pas accès.
+    judge_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(
+        api_key=OPENAI_API_KEY,
+        model=EMBEDDING_MODEL,  # text-embedding-3-small
     ))
 
     # Construire le dataset RAGAS
@@ -218,6 +226,7 @@ def run_evaluation(samples: list[dict]) -> dict:
         dataset=dataset,
         metrics=metrics,
         llm=judge_llm,
+        embeddings=judge_embeddings,   # ← forcer text-embedding-3-small
         raise_exceptions=False,
     )
 
@@ -230,20 +239,35 @@ def print_report(result, samples: list[dict]) -> dict:
     print("  📊  RAPPORT D'ÉVALUATION RAG — QA Assistant")
     print("═" * 60)
 
-    # Scores globaux
+    # Scores globaux — noms de colonnes RAGAS 0.3.x (snake_case dans le DataFrame)
     score_map = {
-        "context_precision":    ("LLMContextPrecisionWithReference", "Précision du contexte RAG"),
-        "faithfulness":         ("Faithfulness",                     "Fidélité aux sources"),
-        "answer_relevancy":     ("ResponseRelevancy",                "Pertinence de la réponse"),
-        "context_recall":       ("LLMContextRecall",                 "Rappel du contexte"),
+        "context_precision": (
+            ["llm_context_precision_with_reference", "context_precision"],
+            "Précision du contexte RAG",
+        ),
+        "faithfulness": (
+            ["faithfulness"],
+            "Fidélité aux sources",
+        ),
+        "answer_relevancy": (
+            ["answer_relevancy", "response_relevancy"],
+            "Pertinence de la réponse",
+        ),
+        "context_recall": (
+            ["llm_context_recall", "context_recall"],
+            "Rappel du contexte",
+        ),
     }
 
     scores = {}
     df = result.to_pandas()
 
-    for key, (col_name, label) in score_map.items():
-        # Cherche la colonne (noms variables selon version RAGAS)
-        col = next((c for c in df.columns if col_name.lower() in c.lower()), None)
+    for key, (candidates, label) in score_map.items():
+        # Cherche la première colonne correspondante (noms variables selon version RAGAS)
+        col = next(
+            (c for c in df.columns for cand in candidates if cand in c.lower()),
+            None,
+        )
         if col:
             val = float(df[col].mean())
             scores[key] = round(val, 3)
@@ -266,11 +290,18 @@ def print_report(result, samples: list[dict]) -> dict:
         print(f"  [{i+1}] {q}...")
         if i < len(df):
             row = df.iloc[i]
-            for key, (col_name, _) in score_map.items():
-                col = next((c for c in df.columns if col_name.lower() in c.lower()), None)
+            for key, (candidates, _) in score_map.items():
+                col = next(
+                    (c for c in df.columns for cand in candidates if cand in c.lower()),
+                    None,
+                )
                 if col and col in row:
                     val = row[col]
-                    print(f"      {key:<25} {val:.3f}" if isinstance(val, float) else f"      {key:<25} N/A")
+                    if isinstance(val, float):
+                        bar = "█" * int(val * 10) + "░" * (10 - int(val * 10))
+                        print(f"      {key:<25} {bar}  {val:.3f}")
+                    else:
+                        print(f"      {key:<25} N/A")
         print()
 
     return {
