@@ -43,3 +43,4 @@ US_API_ENDPOINT: str = os.getenv("US_API_ENDPOINT", "http://localhost:3000/api/u
 CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
 RAG_SCORE_THRESHOLD: float = float(os.getenv("RAG_SCORE_THRESHOLD", "0.10"))
 RAG_TOP_K: int = int(os.getenv("RAG_TOP_K", "5"))
+RAG_RERANKER_ENABLED: bool = os.getenv("RAG_RERANKER_ENABLED", "true").lower() == "true"

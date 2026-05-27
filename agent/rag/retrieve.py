@@ -2,15 +2,13 @@
 rag/retrieve.py — Recherche sémantique dans la base ISTQB.
 
 Fournit :
-  - retrieve(query)     : retourne les chunks ISTQB pertinents pour une query.
-  - format_context(docs): formate les chunks en texte injectable dans un prompt.
+  - retrieve(query)         : retourne les chunks ISTQB pertinents pour une query.
+  - build_rag_context(docs) : formate les chunks en texte injectable dans un prompt.
 
-Filtrage par score :
-  RAG_SCORE_THRESHOLD (défaut 0.70) — seuls les chunks au-dessus du seuil sont retenus.
-  Interprétation (similarité cosinus 0→1) :
-    > 0.80 : très pertinent — injecter
-    0.70–0.80 : pertinent — injecter
-    < 0.70 : faiblement pertinent — ignorer
+Pipeline :
+  1. ChromaDB bi-encoder  → top-K chunks par similarité cosinus
+  2. Filtrage par seuil   → RAG_SCORE_THRESHOLD (défaut 0.10)
+  3. Cross-encoder rerank → réordonnancement précis (query ↔ passage)
 """
 
 import logging
@@ -18,7 +16,7 @@ from dataclasses import dataclass
 
 from langchain_core.documents import Document
 
-from config import RAG_SCORE_THRESHOLD, RAG_TOP_K
+from config import RAG_SCORE_THRESHOLD, RAG_TOP_K, RAG_RERANKER_ENABLED
 from rag.vector_store import get_or_create_store, is_indexed
 
 logger = logging.getLogger(__name__)
@@ -82,6 +80,12 @@ def retrieve(query: str) -> list[RetrievedChunk]:
         "RAG — query: '%.60s…' → %d/%d chunks retenus (seuil=%.2f)",
         query, len(chunks), len(results), RAG_SCORE_THRESHOLD,
     )
+
+    # Reranking cross-encoder (optionnel, activé via RAG_RERANKER_ENABLED)
+    if RAG_RERANKER_ENABLED and len(chunks) > 1:
+        from rag.reranker import rerank
+        chunks = rerank(query, chunks)
+
     return chunks
 
 
