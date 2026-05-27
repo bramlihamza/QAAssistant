@@ -1,0 +1,25 @@
+# QA Assistant — Dépendances pour Vercel Functions
+# Optimisé pour serverless (moins de poids, plus rapide)
+
+# ── LLM & LangChain ──────────────────────────────────────────────────
+langchain>=0.3.25
+langchain-openai>=0.3.18
+langchain-community>=0.3.24,<0.4.0
+openai>=1.82.0
+
+# ── Vectorisation (Pinecone remplace ChromaDB) ───────────────────────
+pinecone-client>=3.0.0
+
+# ── Pydantic pour validation ─────────────────────────────────────────
+pydantic>=2.11.0
+
+# ── Utilitaires ──────────────────────────────────────────────────────
+python-dotenv>=1.1.0
+requests>=2.32.0
+tiktoken>=0.9.0
+
+# ── Embedding & Reranker (optionnel, lourd) ──────────────────────────
+# Décommentez si vous voulez le reranker local
+# sentence-transformers>=5.5.1
+
+# Note: ChromaDB, FastAPI, uvicorn ne sont pas nécessaires en serverless

@@ -1,0 +1,43 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.output",
+  "framework": "nuxt",
+  "env": {
+    "OPENAI_API_KEY": {
+      "description": "Clé API OpenAI pour GPT-4o-mini et embeddings",
+      "required": true
+    },
+    "PINECONE_API_KEY": {
+      "description": "Clé API Pinecone pour la vectorisation",
+      "required": true
+    },
+    "PINECONE_INDEX": {
+      "description": "Nom de l'index Pinecone (ex: qa-assistant)",
+      "required": true
+    },
+    "PINECONE_ENVIRONMENT": {
+      "description": "Région Pinecone (ex: gcp-starter)",
+      "required": false
+    },
+    "MODEL": {
+      "description": "Modèle GPT à utiliser",
+      "required": false,
+      "default": "gpt-4o-mini"
+    },
+    "TEMPERATURE": {
+      "description": "Température LLM (0 = déterministe)",
+      "required": false,
+      "default": "0"
+    },
+    "RAGAS_ENABLED": {
+      "description": "Activer évaluation RAGAS",
+      "required": false,
+      "default": "false"
+    }
+  },
+  "functions": {
+    "api/**/*.py": {
+      "maxDuration": 30
+    }
+  }
+}
