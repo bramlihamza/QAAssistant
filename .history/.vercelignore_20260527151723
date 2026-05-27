@@ -1,0 +1,16 @@
+# Ignore agent directory from being treated as root
+agent/
+
+# Build artifacts and caches
+node_modules/
+.nuxt/
+.output/
+dist/
+build/
+.git/
+.env
+.env.local
+
+# PDFs (large files)
+*.pdf
+
