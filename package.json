@@ -4,7 +4,7 @@
   "description": "QA Assistant — Vercel Monorepo (Nuxt Frontend + Python API)",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf .vercel && cp -r frontend/.vercel . || true",
+    "build": "cd frontend && npm install && npm run build",
     "dev": "cd frontend && npm run dev"
   },
   "engines": {
