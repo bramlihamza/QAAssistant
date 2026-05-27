@@ -29,9 +29,9 @@ COPY --from=builder /app/.venv /app/.venv
 # Copier le code de l'application
 COPY agent/ .
 
-# Copier les PDFs ISTQB (nécessaires pour l'ingestion RAG)
-# En production, monter un volume : -v /path/to/pdf:/pdf
-COPY pdf/ /pdf/
+# PDFs ISTQB — fournis via un volume monté sur /pdf
+# Sur Railway, attacher un volume au chemin /pdf
+RUN mkdir -p /pdf
 
 # Variable d'environnement pour utiliser le venv
 ENV PATH="/app/.venv/bin:$PATH"
