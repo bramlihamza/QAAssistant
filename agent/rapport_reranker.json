@@ -1,0 +1,11 @@
+{
+  "scores": {
+    "context_precision": 0.583,
+    "faithfulness": 0.756,
+    "answer_relevancy": 0.931,
+    "context_recall": 0.6
+  },
+  "global_score": 0.718,
+  "n_samples": 5,
+  "model": "gpt-4o-mini"
+}
