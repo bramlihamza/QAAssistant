@@ -1,0 +1,13 @@
+# Ne pas ignorer les dossiers critiques
+!api/
+!frontend/
+!agent/
+
+# Ignorer les gros fichiers
+*.pdf
+node_modules/
+.git/
+.venv/
+__pycache__/
+*.pyc
+.env

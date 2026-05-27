@@ -1,0 +1,13 @@
+{
+  "name": "qa-assistant",
+  "version": "1.0.0",
+  "description": "QA Assistant — Vercel Monorepo (Nuxt Frontend + Python API)",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
