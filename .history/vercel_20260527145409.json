@@ -1,0 +1,18 @@
+{
+  "projects": [
+    {
+      "name": "frontend",
+      "rootDirectory": "frontend"
+    },
+    {
+      "name": "api",
+      "rootDirectory": "."
+    }
+  ],
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python3.11",
+      "maxDuration": 30
+    }
+  }
+}
