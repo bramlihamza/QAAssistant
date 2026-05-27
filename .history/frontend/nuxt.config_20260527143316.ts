@@ -24,14 +24,12 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    // API QA Assistant (Railway)
-    qaApiBase: process.env.QA_API_BASE || 'https://qa-assistant-api-prod.railway.app',
+    qaApiBase: process.env.QA_API_BASE || 'http://localhost:8000',
     userStoriesApiBase:
       process.env.USER_STORIES_API_BASE ||
       'https://raw.githubusercontent.com/mickaellherminez/github-user-stories-fake-api/main/data',
     public: {
-      appName: 'QA Assistant Console',
-      apiBase: process.env.PUBLIC_API_BASE || 'https://qa-assistant-api-prod.railway.app'
+      appName: 'QA Assistant Console'
     }
   }
 })
