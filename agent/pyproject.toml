@@ -8,7 +8,7 @@ dependencies = [
     # ── LLM & LangChain ──────────────────────────────────────────────────
     "langchain>=0.3.25",
     "langchain-openai>=0.3.18",
-    "langchain-community>=0.3.24",
+    "langchain-community>=0.3.24,<0.4.0",
     "langchain-chroma>=0.2.4",
     "openai>=1.82.0",
     # ── API ───────────────────────────────────────────────────────────────
@@ -25,6 +25,8 @@ dependencies = [
     # ── Utilitaires ───────────────────────────────────────────────────────
     "python-dotenv>=1.1.0",
     "requests>=2.32.0",
+    "pillow>=12.2.0",
+    "langchain-text-splitters>=1.1.2",
 ]
 
 [dependency-groups]

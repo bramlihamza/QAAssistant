@@ -1,0 +1,31 @@
+# Environnement Python
+agent/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+
+# Données locales (volumes Docker)
+agent/chroma_db/
+
+# Secrets — ne jamais inclure dans l'image
+agent/.env
+
+# Git
+.git/
+.gitignore
+
+# Éditeurs / macOS
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Fichiers de build Python
+*.egg-info/
+dist/
+build/
