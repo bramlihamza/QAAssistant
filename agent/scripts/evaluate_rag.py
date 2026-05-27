@@ -123,7 +123,45 @@ def _load_system_prompt() -> str:
         return f.read()
 
 
-def build_dataset() -> list[dict]:
+def _generate_answer_with_model(messages: list[dict], model_name: str | None = None) -> str:
+    """Génère une réponse LLM en permettant un override de modèle."""
+    if not model_name:
+        from llm import call_llm
+        return call_llm(messages)
+
+    from config import OPENAI_API_KEY, MAX_TOKENS, TEMPERATURE
+    from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+    from langchain_openai import ChatOpenAI
+
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        model=model_name,
+        temperature=TEMPERATURE,
+        max_tokens=MAX_TOKENS,
+    )
+
+    lc_messages = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if role == "system":
+            lc_messages.append(SystemMessage(content=content))
+        elif role == "assistant":
+            lc_messages.append(AIMessage(content=content))
+        else:
+            lc_messages.append(HumanMessage(content=content))
+
+    response = llm.invoke(lc_messages)
+    content = response.content
+    if isinstance(content, str):
+        return content
+    return str(content)
+
+
+def build_dataset(
+    max_samples: int | None = None,
+    candidate_model: str | None = None,
+) -> list[dict]:
     """
     Construit le dataset RAGAS en récupérant dynamiquement
     les contextes RAG et les réponses agent pour chaque sample.
@@ -131,9 +169,11 @@ def build_dataset() -> list[dict]:
     print("\n🔍 Construction du dataset d'évaluation...")
     samples = []
 
-    for i, s in enumerate(_EVAL_SAMPLES, 1):
+    source_samples = _EVAL_SAMPLES[:max_samples] if max_samples else _EVAL_SAMPLES
+
+    for i, s in enumerate(source_samples, 1):
         question = s["question"]
-        print(f"  [{i}/{len(_EVAL_SAMPLES)}] {question[:70]}...")
+        print(f"  [{i}/{len(source_samples)}] {question[:70]}...")
 
         contexts = _retrieve_context(question)
         if not contexts:
@@ -141,7 +181,6 @@ def build_dataset() -> list[dict]:
             continue
 
         # Appel LLM pour la réponse agent
-        from llm import call_llm
         from rag.retrieve import retrieve, build_rag_context
         chunks = retrieve(question)
         rag_ctx = build_rag_context(chunks)
@@ -155,7 +194,7 @@ def build_dataset() -> list[dict]:
             {"role": "user", "content": question},
         ]
         try:
-            answer = call_llm(messages)
+            answer = _generate_answer_with_model(messages, model_name=candidate_model)
         except Exception as e:
             print(f"    ⚠️  Erreur LLM : {e}")
             continue
@@ -171,7 +210,11 @@ def build_dataset() -> list[dict]:
     return samples
 
 
-def run_evaluation(samples: list[dict]) -> dict:
+def run_evaluation(
+    samples: list[dict],
+    judge_model: str | None = None,
+    embedding_model: str | None = None,
+) -> dict:
     """Lance l'évaluation RAGAS sur les samples préparés."""
     from ragas import evaluate
     from ragas.dataset_schema import SingleTurnSample, EvaluationDataset
@@ -187,11 +230,13 @@ def run_evaluation(samples: list[dict]) -> dict:
     from config import OPENAI_API_KEY, MODEL, EMBEDDING_MODEL
 
     print("\n⚖️  Évaluation RAGAS en cours...")
+    model_name = judge_model or MODEL
+    embedding_name = embedding_model or EMBEDDING_MODEL
 
     # LLM juge (même modèle que l'agent)
     judge_llm = LangchainLLMWrapper(ChatOpenAI(
         api_key=OPENAI_API_KEY,
-        model=MODEL,
+        model=model_name,
         temperature=0,
     ))
 
@@ -199,7 +244,7 @@ def run_evaluation(samples: list[dict]) -> dict:
     # RAGAS utilise ada-002 par défaut, mais notre projet n'y a pas accès.
     judge_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(
         api_key=OPENAI_API_KEY,
-        model=EMBEDDING_MODEL,  # text-embedding-3-small
+        model=embedding_name,  # text-embedding-3-small
     ))
 
     # Construire le dataset RAGAS
@@ -233,7 +278,7 @@ def run_evaluation(samples: list[dict]) -> dict:
     return result
 
 
-def print_report(result, samples: list[dict]) -> dict:
+def print_report(result, samples: list[dict], model_name: str) -> dict:
     """Affiche et retourne le rapport d'évaluation."""
     print("\n" + "═" * 60)
     print("  📊  RAPPORT D'ÉVALUATION RAG — QA Assistant")
@@ -308,30 +353,46 @@ def print_report(result, samples: list[dict]) -> dict:
         "scores": scores,
         "global_score": round(global_score, 3),
         "n_samples": len(samples),
-        "model": "gpt-4o-mini",
+        "model": model_name,
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Évaluation qualité du pipeline RAG — QA Assistant")
     parser.add_argument("--out", metavar="FILE", help="Exporter le rapport en JSON")
+    parser.add_argument("--model", metavar="MODEL", help="Modèle juge RAGAS (ex: gpt-4o-mini)")
+    parser.add_argument(
+        "--embedding-model",
+        metavar="EMBEDDING_MODEL",
+        help="Modèle d'embeddings pour RAGAS (ex: text-embedding-3-small)",
+    )
+    parser.add_argument(
+        "--max-samples",
+        type=int,
+        default=None,
+        help="Limiter le nombre de questions d'évaluation (1..N).",
+    )
     parser.add_argument("--dry-run", action="store_true",
                         help="Affiche le dataset sans appeler RAGAS (vérifie le RAG uniquement)")
     args = parser.parse_args()
 
     print("🚀 QA Assistant — Évaluation RAGAS")
-    print(f"   Dataset : {len(_EVAL_SAMPLES)} questions ISTQB")
+    dataset_size = args.max_samples if args.max_samples else len(_EVAL_SAMPLES)
+    print(f"   Dataset : {dataset_size} questions ISTQB")
     mode_label = "dry-run (pas d'appel RAGAS)" if args.dry_run else "évaluation complète"
     print(f"   Mode    : {mode_label}")
 
     # 1. Construire le dataset
-    samples = build_dataset()
+    samples = build_dataset(
+        max_samples=args.max_samples,
+        candidate_model=args.model,
+    )
     if not samples:
         print("\n❌ Aucun sample construit — vérifiez que ChromaDB est indexé.")
         print("   Lancez : uv run python scripts/ingest_docs.py")
         sys.exit(1)
 
-    print(f"\n✅ {len(samples)}/{len(_EVAL_SAMPLES)} samples prêts.")
+    print(f"\n✅ {len(samples)}/{dataset_size} samples prêts.")
 
     if args.dry_run:
         print("\n[dry-run] Contextes récupérés :")
@@ -341,10 +402,16 @@ def main():
         return
 
     # 2. Évaluer
-    result = run_evaluation(samples)
+    result = run_evaluation(
+        samples,
+        judge_model=args.model,
+        embedding_model=args.embedding_model,
+    )
 
     # 3. Rapport
-    report = print_report(result, samples)
+    from config import MODEL
+    model_used = args.model or MODEL
+    report = print_report(result, samples, model_name=model_used)
 
     # 4. Export JSON optionnel
     if args.out:

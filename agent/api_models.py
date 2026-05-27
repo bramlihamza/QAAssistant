@@ -137,3 +137,82 @@ class MetricsResponse(BaseModel):
     requests_error: int = Field(..., description="Nombre de requêtes avec status='error'.")
     avg_response_time_ms: float = Field(..., description="Temps de réponse moyen en millisecondes.")
     test_cases_generated: int = Field(..., description="Nombre total de cas de test générés.")
+
+
+# ── User Stories ──────────────────────────────────────────────────────────────
+
+class UserStory(BaseModel):
+    """User story récupérée depuis la fake API GitHub."""
+
+    id: int = Field(..., ge=1, description="Identifiant numérique de la user story.")
+    index: str = Field(..., description="Index fonctionnel (ex: US-006).")
+    title: str = Field(..., description="Titre court de la user story.")
+    description: str = Field(..., description="Description métier.")
+    constraints: list[str] = Field(default_factory=list, description="Contraintes métier.")
+    acceptanceCriteria: list[str] = Field(
+        default_factory=list,
+        description="Critères d'acceptation (Given/When/Then).",
+    )
+    priority: str = Field(..., description="Priorité : low | medium | high.")
+    status: str = Field(..., description="Statut : draft | ready | in-progress | done.")
+    images: list[str] = Field(default_factory=list, description="URLs d'illustrations/mockups.")
+
+
+# ── RAGAS ─────────────────────────────────────────────────────────────────────
+
+class RagasReportResponse(BaseModel):
+    """Réponse normalisée d'un rapport RAGAS."""
+
+    selected_report: str = Field(..., description="Identifiant logique du rapport chargé.")
+    report_file: str = Field(..., description="Nom du fichier JSON source.")
+    available_reports: list[str] = Field(..., description="Identifiants de rapports disponibles.")
+    scores: dict[str, float | None] = Field(
+        default_factory=dict,
+        description="Scores détaillés RAGAS.",
+    )
+    global_score: float | None = Field(default=None, description="Score global RAGAS.")
+    n_samples: int | None = Field(default=None, description="Nombre d'échantillons évalués.")
+    model: str | None = Field(default=None, description="Modèle juge utilisé.")
+
+
+class RagasRunRequest(BaseModel):
+    """Corps de la requête POST /ragas/run."""
+
+    report: str = Field(
+        default="reranker",
+        description="Rapport cible (reranker | baseline | v2) si sauvegarde activée.",
+    )
+    persist_report: bool = Field(
+        default=True,
+        description="Sauvegarder ou non le résultat dans le fichier de rapport sélectionné.",
+    )
+    model: str | None = Field(
+        default=None,
+        description="Modèle juge RAGAS (ex: gpt-4o-mini).",
+    )
+    embedding_model: str | None = Field(
+        default=None,
+        description="Modèle d'embeddings (ex: text-embedding-3-small).",
+    )
+    max_samples: int | None = Field(
+        default=5,
+        ge=1,
+        le=25,
+        description="Nombre maximum d'échantillons du dataset de benchmark.",
+    )
+
+
+class RagasRunResponse(BaseModel):
+    """Réponse de POST /ragas/run."""
+
+    status: str = Field(default="success", description="Statut d'exécution du run.")
+    report: str = Field(..., description="Nom logique du rapport concerné.")
+    report_file: str | None = Field(default=None, description="Fichier de rapport mis à jour.")
+    persisted: bool = Field(default=False, description="Indique si le rapport a été sauvegardé.")
+    duration_ms: float = Field(..., description="Durée d'exécution du run RAGAS.")
+    available_reports: list[str] = Field(..., description="Rapports disponibles après run.")
+    scores: dict[str, float | None] = Field(default_factory=dict, description="Scores détaillés RAGAS.")
+    global_score: float | None = Field(default=None, description="Score global du run.")
+    n_samples: int = Field(..., description="Nombre d'échantillons effectivement évalués.")
+    model: str = Field(..., description="Modèle juge utilisé.")
+    embedding_model: str = Field(..., description="Modèle d'embeddings utilisé.")

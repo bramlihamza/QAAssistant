@@ -267,17 +267,19 @@ uv run python scripts/ingest_docs.py
 
 ## 9. Démarrage de chaque composant
 
-### A — Serveur HTTP · User Stories (Terminal 1)
+### A — Source User Stories (GitHub Raw API)
 
-```bash
-# Depuis la racine du projet QA_Assistant/
-python -m http.server 3000
+Par défaut, l'agent consomme directement le repo public :
+
+```txt
+https://raw.githubusercontent.com/mickaellherminez/github-user-stories-fake-api/main/data/user-stories.json
 ```
 
-Sert `user_stories_45_generated.json` (45 US, US-006 → US-050).
-Requis avant de démarrer l'API.
+Aucun serveur local de mock n'est requis.
 
-### B — API FastAPI · Agent QA (Terminal 2)
+Optionnel : pour surcharger la source, modifiez `US_API_ENDPOINT` dans `agent/.env`.
+
+### B — API FastAPI · Agent QA (Terminal 1)
 
 ```bash
 cd agent
@@ -317,6 +319,19 @@ uv run pytest -v   # verbose
 uv run pytest -q   # résumé
 ```
 
+### F — Frontend Nuxt (UI User Stories + métriques)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Variables optionnelles (frontend) :
+
+- `QA_API_BASE` (défaut `http://localhost:8000`)
+- `USER_STORIES_API_BASE` (défaut `https://raw.githubusercontent.com/mickaellherminez/github-user-stories-fake-api/main/data`)
+
 ---
 
 ## 10. URLs disponibles
@@ -328,8 +343,12 @@ uv run pytest -q   # résumé
 | `http://localhost:8000/ask` | POST | Soumettre une question à l'agent QA |
 | `http://localhost:8000/health` | GET | État de l'API + ChromaDB |
 | `http://localhost:8000/metrics` | GET | Statistiques depuis le démarrage |
+| `http://localhost:8000/user-stories` | GET | Liste des user stories consommées par l'agent |
+| `http://localhost:8000/user-stories/US-006` | GET | Détail d'une user story par index |
+| `http://localhost:8000/ragas` | GET | Rapport RAGAS local (par défaut `reranker`) |
 | `http://localhost:8000/openapi.json` | GET | Schéma OpenAPI (machine-readable) |
-| `http://localhost:3000/user_stories_45_generated.json` | GET | Endpoint User Stories |
+| `http://localhost:3000` | GET | Frontend Nuxt (liste US + génération de tests) |
+| `https://raw.githubusercontent.com/mickaellherminez/github-user-stories-fake-api/main/data/user-stories.json` | GET | Dataset User Stories (source par défaut) |
 
 ### Exemple d'appel `/ask`
 
